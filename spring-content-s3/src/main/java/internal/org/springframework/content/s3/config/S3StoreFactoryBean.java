@@ -1,7 +1,10 @@
 package internal.org.springframework.content.s3.config;
 
+import java.io.Serializable;
+
 import com.amazonaws.services.s3.AmazonS3;
 import internal.org.springframework.content.s3.store.DefaultS3StoreImpl;
+
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,8 +15,6 @@ import org.springframework.content.commons.utils.PlacementService;
 import org.springframework.content.s3.S3ObjectIdResolver;
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.versions.LockingAndVersioningProxyFactory;
-
-import java.io.Serializable;
 
 @SuppressWarnings("rawtypes")
 public class S3StoreFactoryBean extends AbstractStoreFactoryBean {

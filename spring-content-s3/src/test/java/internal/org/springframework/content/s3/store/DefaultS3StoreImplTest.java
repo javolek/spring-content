@@ -2,13 +2,17 @@ package internal.org.springframework.content.s3.store;
 
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.model.AmazonS3Exception;
+import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.S3ObjectId;
 import com.github.paulcwarren.ginkgo4j.Ginkgo4jRunner;
 import internal.org.springframework.content.s3.config.DefaultAssociativeStoreS3ObjectIdResolver;
 import internal.org.springframework.content.s3.config.S3ObjectIdResolverConverter;
 import internal.org.springframework.content.s3.config.S3StoreConfiguration;
 import org.junit.runner.RunWith;
-import org.mockito.Matchers;
+import org.mockito.ArgumentCaptor;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 import org.springframework.content.commons.annotations.ContentId;
 import org.springframework.content.commons.annotations.ContentLength;
 import org.springframework.content.commons.repository.StoreAccessException;
@@ -35,11 +39,13 @@ import static com.github.paulcwarren.ginkgo4j.Ginkgo4jDSL.Context;
 import static com.github.paulcwarren.ginkgo4j.Ginkgo4jDSL.Describe;
 import static com.github.paulcwarren.ginkgo4j.Ginkgo4jDSL.It;
 import static com.github.paulcwarren.ginkgo4j.Ginkgo4jDSL.JustBeforeEach;
+import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.text.MatchesPattern.matchesPattern;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.matches;
 import static org.mockito.Matchers.anyObject;
@@ -48,9 +54,9 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.hamcrest.MockitoHamcrest.argThat;
 import static org.springframework.content.s3.S3ObjectIdResolver.createS3ObjectIdResolver;
 
 @RunWith(Ginkgo4jRunner.class)
@@ -376,14 +382,12 @@ public class DefaultS3StoreImplTest {
 			});
 			Describe("ContentStore", () -> {
 				JustBeforeEach(() -> {
-					s3StoreImpl = new DefaultS3StoreImpl<ContentProperty, String>(loader,
-							placementService, client);
+					s3StoreImpl = new DefaultS3StoreImpl<>(loader, placementService, client);
 				});
 				Context("#setContent", () -> {
 					BeforeEach(() -> {
 						entity = new TestEntity();
-						content = new ByteArrayInputStream(
-								"Hello content world!".getBytes());
+						content = new ByteArrayInputStream("Hello content world!".getBytes());
 					});
 					JustBeforeEach(() -> {
 						try {
@@ -409,6 +413,7 @@ public class DefaultS3StoreImplTest {
 
 									when(loader.getResource(endsWith("abcd-efgh"))).thenReturn(resource);
 									output = mock(OutputStream.class);
+									when(resource.getFilename()).thenReturn("abcd-efgh");
 									when(resource.getOutputStream()).thenReturn(output);
 
 									when(resource.contentLength()).thenReturn(20L);
@@ -421,18 +426,21 @@ public class DefaultS3StoreImplTest {
 								It("should change the content length", () -> {
 									assertThat(entity.getContentLen(), is(20L));
 								});
-								It("should write to the resource's outputstream", () -> {
-									verify(resource).getOutputStream();
-									verify(output, times(1)).write(Matchers.<byte[]>any(),
-											eq(0), eq(20));
+								It("should set the content with a put object request", () -> {
+									ArgumentCaptor<PutObjectRequest> req = ArgumentCaptor.forClass(PutObjectRequest.class);
+									verify(client).putObject(req.capture());
+									assertThat(req.getValue().getBucketName(), is(defaultBucket));
+									assertThat(req.getValue().getKey(), is("abcd-efgh"));
+									assertThat(req.getValue().getInputStream(), is(content));
+									assertThat(req.getValue().getMetadata().getContentType(), is("text/plain"));
 								});
-								Context("when the resource output stream throws an IOException", () -> {
+								Context("when the put object request fails", () -> {
 									BeforeEach(() -> {
-										when(resource.getOutputStream()).thenThrow(new IOException("set-ioexception"));
+										when(client.putObject(argThat(instanceOf(PutObjectRequest.class)))).thenThrow(new AmazonS3Exception("put-object-request-failed"));
 									});
 									It("should throw a StoreAccessException", () -> {
 										assertThat(e, is(instanceOf(StoreAccessException.class)));
-										assertThat(e.getCause().getMessage(), is("set-ioexception"));
+										assertThat(e.getCause().getMessage(), containsString("put-object-request-failed"));
 									});
 								});
 							});
@@ -445,6 +453,12 @@ public class DefaultS3StoreImplTest {
 
                                     when(loader.getResource(matches("^s3://.*[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"))).thenReturn(resource);
 									output = mock(OutputStream.class);
+									when(resource.getFilename()).thenAnswer(new Answer<String>() {
+										@Override
+										public String answer(InvocationOnMock invocation) throws Throwable {
+											return entity.getContentId();
+										}
+									});
 									when(resource.getOutputStream()).thenReturn(output);
 
 									when(resource.contentLength()).thenReturn(20L);
@@ -461,10 +475,13 @@ public class DefaultS3StoreImplTest {
 								It("should create a new resource", () -> {
 									verify(loader).getResource(matches("^s3://.*[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"));
 								});
-								It("should write to the resource's outputstream", () -> {
-									verify(resource).getOutputStream();
-									verify(output, times(1)).write(Matchers.<byte[]>any(),
-											eq(0), eq(20));
+								It("should set the content with a put object request", () -> {
+									ArgumentCaptor<PutObjectRequest> req = ArgumentCaptor.forClass(PutObjectRequest.class);
+									verify(client).putObject(req.capture());
+									assertThat(req.getValue().getBucketName(), is(defaultBucket));
+									assertThat(req.getValue().getKey(), matchesPattern("[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"));
+									assertThat(req.getValue().getInputStream(), is(content));
+									assertThat(req.getValue().getMetadata().getContentType(), is("text/plain"));
 								});
 							});
 						});

@@ -1,11 +1,21 @@
 package internal.org.springframework.content.s3.store;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.Serializable;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
+import java.util.UUID;
+
 import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.model.AmazonS3Exception;
+import com.amazonaws.services.s3.model.ObjectMetadata;
+import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.S3ObjectId;
 import internal.org.springframework.content.s3.io.S3StoreResource;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.content.commons.annotations.ContentId;
 import org.springframework.content.commons.annotations.ContentLength;
 import org.springframework.content.commons.io.DeletableResource;
@@ -19,17 +29,8 @@ import org.springframework.content.commons.utils.PlacementService;
 import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
-import org.springframework.core.io.WritableResource;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.Serializable;
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Field;
-import java.util.UUID;
 
 import static java.lang.String.format;
 
@@ -138,49 +139,34 @@ public class DefaultS3StoreImpl<S, SID extends Serializable>
 			UUID newId = UUID.randomUUID();
 
 			Object convertedId = placementService.convert(
-						newId,
-						TypeDescriptor.forObject(newId),
-						TypeDescriptor.valueOf(BeanUtils.getFieldWithAnnotationType(entity, ContentId.class)));
+					newId,
+					TypeDescriptor.forObject(newId),
+					TypeDescriptor.valueOf(BeanUtils.getFieldWithAnnotationType(entity, ContentId.class)));
 
-			BeanUtils.setFieldWithAnnotation(entity, ContentId.class, convertedId);
+			contentId = convertedId;
+			BeanUtils.setFieldWithAnnotation(entity, ContentId.class, contentId);
 		}
 
-		Resource resource = this.getResource(entity);
+		S3StoreResource resource = (S3StoreResource)this.getResource(entity);
 		if (resource == null) {
 			return;
 		}
 
-		OutputStream os = null;
 		try {
-			if (resource instanceof WritableResource) {
-				os = ((WritableResource) resource).getOutputStream();
-				IOUtils.copy(content, os);
-				IOUtils.closeQuietly(os);
-			}
-
-			try {
-				BeanUtils.setFieldWithAnnotation(entity, ContentLength.class,
-						resource.contentLength());
-			}
-			catch (IOException e) {
-				logger.error(format(
-						"Unexpected error setting content length for entity %s",
-						entity), e);
-			}
-		}
-		catch (IOException e) {
+			ObjectMetadata md = new ObjectMetadata();
+			md.setContentType("text/plain");
+			PutObjectRequest req = new PutObjectRequest(resource.getBucket(), resource.getFilename(), content, md);
+			client.putObject(req);
+		} catch (AmazonS3Exception e) {
 			logger.error(format("Unexpected error setting content for entity %s", resource.toString()), e);
 			throw new StoreAccessException(format("Setting content for entity %s", entity), e);
 		}
-		finally {
-			try {
-				if (os != null) {
-					os.close();
-				}
-			}
-			catch (IOException ioe) {
-				// ignore
-			}
+
+		try {
+			BeanUtils.setFieldWithAnnotation(entity, ContentLength.class, resource.contentLength());
+		}
+		catch (IOException e) {
+			logger.error(format("Unexpected error setting content length for entity %s", entity), e);
 		}
 	}
 

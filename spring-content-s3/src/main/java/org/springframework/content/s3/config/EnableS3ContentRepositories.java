@@ -7,13 +7,12 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import org.springframework.beans.factory.FactoryBean;
-import org.springframework.cloud.aws.context.config.annotation.ContextResourceLoaderConfiguration;
-import org.springframework.context.annotation.Import;
-
 import internal.org.springframework.content.s3.config.S3ContentRepositoriesRegistrar;
 import internal.org.springframework.content.s3.config.S3StoreConfiguration;
 import internal.org.springframework.content.s3.config.S3StoreFactoryBean;
+
+import org.springframework.beans.factory.FactoryBean;
+import org.springframework.context.annotation.Import;
 
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
