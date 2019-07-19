@@ -51,6 +51,12 @@ public class StoreRestController extends AbstractContentPropertyController {
 	}
 
 	@StoreType("store")
+	@RequestMapping(value = "/{store}", method = RequestMethod.GET)
+	public void getStore() {
+		throw new ResourceNotFoundException();
+	}
+
+	@StoreType("store")
 	@RequestMapping(value = BASE_MAPPING, method = RequestMethod.GET)
 	public void getContent(HttpServletRequest request, HttpServletResponse response,
 			@PathVariable String store) throws ServletException, IOException {

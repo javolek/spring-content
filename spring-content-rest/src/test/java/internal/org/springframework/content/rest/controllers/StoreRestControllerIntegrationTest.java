@@ -70,6 +70,18 @@ public class StoreRestControllerIntegrationTest {
 				mvc = MockMvcBuilders.webAppContextSetup(context).build();
 			});
 
+			Context("given just a store path", () -> {
+
+				BeforeEach(() -> {
+					request = "/teststore/";
+				});
+				Context("given a GET request to that path", () -> {
+					It("should return 404", () -> {
+						mvc.perform(get(request)).andExpect(status().isNotFound());
+					});
+				});
+			});
+
 			Context("given a root resource path", () -> {
 				BeforeEach(() -> {
 					path = "/" + UUID.randomUUID() + ".txt";

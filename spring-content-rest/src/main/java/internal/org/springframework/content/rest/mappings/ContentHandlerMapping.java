@@ -1,8 +1,20 @@
 package internal.org.springframework.content.rest.mappings;
 
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+import java.lang.reflect.Method;
+import java.net.URI;
+import java.util.List;
+
+import javax.servlet.http.HttpServletRequest;
+
 import internal.org.springframework.content.rest.annotations.ContentRestController;
 import internal.org.springframework.content.rest.utils.ContentStoreUtils;
 import org.apache.commons.io.FilenameUtils;
+
 import org.springframework.content.commons.repository.ContentStore;
 import org.springframework.content.commons.repository.Store;
 import org.springframework.content.commons.storeservice.ContentStoreInfo;
@@ -16,16 +28,6 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.mvc.condition.RequestCondition;
 import org.springframework.web.util.UrlPathHelper;
-
-import javax.servlet.http.HttpServletRequest;
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-import java.lang.reflect.Method;
-import java.net.URI;
-import java.util.List;
 
 public class ContentHandlerMapping extends StoreAwareHandlerMapping {
 
@@ -67,8 +69,12 @@ public class ContentHandlerMapping extends StoreAwareHandlerMapping {
 		if (storeLookupPath != null) {
 			// is a content property, if so look up a handler method?
 			String[] path = storeLookupPath.split("/");
-			if (path.length < 3)
+//			if (path.length < 3) {
+//				return null;
+//			}
+			if (path.length < 2) {
 				return null;
+			}
 
 			ContentStoreInfo info2 = ContentStoreUtils.findStore(contentStores, path[1]);
 			if (info2 != null && isHalOrJsonRequest(request) == false) {
@@ -194,9 +200,13 @@ public class ContentHandlerMapping extends StoreAwareHandlerMapping {
 			String storeLookupPath = ContentStoreUtils.storeLookupPath(path, baseUri);
 
 			String[] segments = storeLookupPath.split("/");
-			if (segments.length < 3) {
+//			if (segments.length < 3) {
+//				return null;
+//			}
+			if (segments.length < 2) {
 				return null;
 			}
+
 			ContentStoreInfo info = ContentStoreUtils.findStore(stores, segments[1]);
 			if (info != null
 					&& ((Store.class.isAssignableFrom(info.getInterface())
