@@ -1,4 +1,4 @@
-package org.springframework.content.elasticsearch;
+package org.springframework.content.elasticsearch.standard;
 
 import java.time.Duration;
 
@@ -7,7 +7,6 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 
-import com.github.paulcwarren.ginkgo4j.Ginkgo4jConfiguration;
 import com.github.paulcwarren.ginkgo4j.Ginkgo4jSpringRunner;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -26,14 +25,12 @@ import org.springframework.content.commons.repository.ContentStore;
 import org.springframework.content.commons.search.Searchable;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.util.Assert;
 
 import static com.github.grantwest.eventually.EventuallyLambdaMatcher.eventuallyEval;
 import static com.github.paulcwarren.ginkgo4j.Ginkgo4jDSL.AfterEach;
 import static com.github.paulcwarren.ginkgo4j.Ginkgo4jDSL.BeforeEach;
 import static com.github.paulcwarren.ginkgo4j.Ginkgo4jDSL.Context;
 import static com.github.paulcwarren.ginkgo4j.Ginkgo4jDSL.Describe;
-import static com.github.paulcwarren.ginkgo4j.Ginkgo4jDSL.FIt;
 import static com.github.paulcwarren.ginkgo4j.Ginkgo4jDSL.It;
 import static org.hamcrest.CoreMatchers.allOf;
 import static org.hamcrest.CoreMatchers.hasItem;
@@ -44,7 +41,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 
 @RunWith(Ginkgo4jSpringRunner.class)
 //@Ginkgo4jConfiguration(threads=1)
-@ContextConfiguration(classes = {EmbeddedElasticConfig.class, ElasticsearchConfig.class})
+@ContextConfiguration(classes = {/*EmbeddedElasticConfig.class, */ElasticsearchConfig.class})
 public class ElasticsearchIntegrationTest {
 
 	@Autowired
@@ -53,8 +50,8 @@ public class ElasticsearchIntegrationTest {
 	@Autowired
 	private DocumentContentStore store;
 
-	@Autowired
-	private EmbeddedElastic server;
+//	@Autowired
+//	private EmbeddedElastic server;
 
 	@Autowired
 	private RestHighLevelClient client;
