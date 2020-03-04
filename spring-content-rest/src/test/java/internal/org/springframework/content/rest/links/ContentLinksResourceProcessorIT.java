@@ -93,9 +93,8 @@ public class ContentLinksResourceProcessorIT {
 					resource = build.build();
 				});
 
-				It("should add an original link and a shortcut link for the content id property", () -> {
-					assertThat(resource.getLinks("testEntity3s"), hasItem(hasProperty("href", is("http://localhost/contentApi/testEntity3s/999"))));
-					assertThat(resource.getLinks("testEntity3"), hasItem(hasProperty("href", is("http://localhost/contentApi/testEntity3s/999"))));
+				It("should add an entity content link against a 'content' linkrel", () -> {
+					assertThat(resource.getLinks("content"), hasItem(hasProperty("href", is("http://localhost/contentApi/testEntity3s/999"))));
 				});
 			});
 

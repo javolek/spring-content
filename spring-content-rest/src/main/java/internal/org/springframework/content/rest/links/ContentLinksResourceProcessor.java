@@ -1,14 +1,8 @@
 package internal.org.springframework.content.rest.links;
 
-import java.beans.PropertyDescriptor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 
@@ -21,18 +15,14 @@ import internal.org.springframework.content.rest.utils.DomainObjectUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.BeanWrapperImpl;
-import org.springframework.beans.InvalidPropertyException;
 import org.springframework.content.commons.annotations.ContentId;
 import org.springframework.content.commons.storeservice.ContentStoreInfo;
 import org.springframework.content.commons.storeservice.ContentStoreService;
 import org.springframework.content.commons.utils.BeanUtils;
+import org.springframework.content.rest.StoreRestResource;
 import org.springframework.content.rest.config.RestConfiguration;
 import org.springframework.core.io.Resource;
-import org.springframework.data.repository.support.Repositories;
-import org.springframework.data.rest.core.mapping.RepositoryResourceMappings;
-import org.springframework.data.rest.core.mapping.ResourceMetadata;
 import org.springframework.data.rest.webmvc.BaseUri;
 import org.springframework.data.rest.webmvc.PersistentEntityResource;
 import org.springframework.hateoas.Link;
@@ -43,7 +33,6 @@ import org.springframework.http.MediaType;
 import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import static java.lang.String.format;
@@ -86,11 +75,7 @@ public class ContentLinksResourceProcessor implements RepresentationModelProcess
 		Field[] fields = BeanUtils.findFieldsWithAnnotation(object.getClass(), ContentId.class, new BeanWrapperImpl(object));
 		if (fields.length == 1) {
 			if (store != null) {
-
-				// for compatibility with v0.x.0 versions
-				originalLink(config.getBaseUri(), store, entityId).ifPresent((l) -> resource.add(l));
-
-				resource.add(shortcutLink(config.getBaseUri(), store, entityId, StringUtils.uncapitalize(ContentStoreUtils.getSimpleName(store))));
+				resource.add(shortcutLink(config.getBaseUri(), store, entityId, contentRel(store, fields[0].getName())));
 			}
 		} else if (fields.length > 1) {
 			for (Field field : fields) {
@@ -99,6 +84,16 @@ public class ContentLinksResourceProcessor implements RepresentationModelProcess
 		}
 
 		return resource;
+	}
+
+	private String contentRel(ContentStoreInfo storeInfo, String name) {
+		String contentRel = StringUtils.uncapitalize(ContentStoreUtils.propertyName(name));
+		Class<?> storeIface = storeInfo.getInterface();
+		StoreRestResource exportSpec = storeIface.getAnnotation(StoreRestResource.class);
+		if (exportSpec != null && !StringUtils.isEmpty(exportSpec.contentRel())) {
+			contentRel = exportSpec.contentRel();
+		}
+		return contentRel;
 	}
 
 	private Optional<Link> originalLink(URI baseUri, ContentStoreInfo store, Object id) {

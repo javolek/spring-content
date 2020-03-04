@@ -79,13 +79,13 @@ public class BaseUriContentLinksIT {
 					entityContentLinkTests.setStore(contentRepository3);
 					entityContentLinkTests.setTestEntity(testEntity3);
 					entityContentLinkTests.setUrl("/api/testEntity3s/" + testEntity3.getId());
-					entityContentLinkTests.setLinkRel("testEntity3s");
+					entityContentLinkTests.setLinkRel("content");
 					entityContentLinkTests.setExpectedLinkRegex("http://localhost/contentApi/testEntity3s/" + testEntity3.getId());
 				});
 				entityContentLinkTests = new EntityContentLinkTests();
 			});
 
-			Context("given an Entity and a Store specifying a store path", () -> {
+			Context("given an Entity and a Store specifying a contentRel and a store path", () -> {
 				BeforeEach(() -> {
 					testEntity = repository.save(new TestEntity());
 
@@ -94,7 +94,7 @@ public class BaseUriContentLinksIT {
 					entityContentLinkTests.setStore(contentRepository);
 					entityContentLinkTests.setTestEntity(testEntity);
 					entityContentLinkTests.setUrl("/api/testEntities/" + testEntity.getId());
-					entityContentLinkTests.setLinkRel("testEntity");
+					entityContentLinkTests.setLinkRel("foo");
 					entityContentLinkTests.setExpectedLinkRegex("http://localhost/contentApi/testEntitiesContent/" + testEntity.getId());
 				});
 				entityContentLinkTests = new EntityContentLinkTests();

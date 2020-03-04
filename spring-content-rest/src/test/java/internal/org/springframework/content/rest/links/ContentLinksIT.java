@@ -76,13 +76,13 @@ public class ContentLinksIT {
 					entityContentLinkTests.setStore(contentRepository3);
 					entityContentLinkTests.setTestEntity(testEntity3);
 					entityContentLinkTests.setUrl("/testEntity3s/" + testEntity3.getId());
-					entityContentLinkTests.setLinkRel("testEntity3");
+					entityContentLinkTests.setLinkRel("content");
 					entityContentLinkTests.setExpectedLinkRegex("http://localhost/testEntity3s/" + testEntity3.getId());
 				});
 				entityContentLinkTests = new EntityContentLinkTests();
 			});
 
-			Context("given an Entity and a Store specifying a store path", () -> {
+			Context("given an Entity and a Store specifying a contentRel and a store path", () -> {
 				BeforeEach(() -> {
 					testEntity = repository.save(new TestEntity());
 
@@ -91,7 +91,7 @@ public class ContentLinksIT {
 					entityContentLinkTests.setStore(contentRepository);
 					entityContentLinkTests.setTestEntity(testEntity);
 					entityContentLinkTests.setUrl("/testEntities/" + testEntity.getId());
-					entityContentLinkTests.setLinkRel("testEntity");
+					entityContentLinkTests.setLinkRel("foo");
 					entityContentLinkTests.setExpectedLinkRegex("http://localhost/testEntitiesContent/" + testEntity.getId());
 				});
 				entityContentLinkTests = new EntityContentLinkTests();
