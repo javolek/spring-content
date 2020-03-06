@@ -18,12 +18,16 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.TimeZone;
 
+import internal.org.springframework.content.rest.support.TestEntity3;
+import internal.org.springframework.content.rest.support.TestEntity3ContentRepository;
+import internal.org.springframework.content.rest.support.TestEntity3Repository;
 import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -61,11 +65,13 @@ import internal.org.springframework.content.rest.support.TestEntityChildContentR
 @ActiveProfiles("store")
 public class ContentPropertyRestEndpointsIT {
 
-	@Autowired
-	private TestEntity2Repository repository2;
+	@Autowired private TestEntity2Repository repository2;
+	@Autowired private TestEntityChildContentRepository contentRepository2;
+	private TestEntity2 testEntity2;
 
-	@Autowired
-	private TestEntityChildContentRepository contentRepository2;
+	@Autowired private TestEntity3Repository repository3;
+	@Autowired private TestEntity3ContentRepository contentRepository3;
+	private TestEntity3 testEntity3;
 
 	@Autowired
 	private WebApplicationContext context;
@@ -75,7 +81,8 @@ public class ContentPropertyRestEndpointsIT {
 
 	private MockMvc mvc;
 
-	private TestEntity2 testEntity2;
+
+
 
 	{
 		Describe("Content/Content Collection REST Endpoints", () -> {
@@ -297,6 +304,152 @@ public class ContentPropertyRestEndpointsIT {
 
 						versionTests = Version.tests();
 						lastModifiedDateTests = LastModifiedDate.tests();
+					});
+				});
+			});
+
+			Context("given an Entity with a primitive content property and content", () -> {
+
+				BeforeEach(() -> {
+					testEntity3 = repository3.save(new TestEntity3());
+
+					String content = "Hello Spring Content World!";
+
+					testEntity3 = contentRepository3.setContent(testEntity3,new ByteArrayInputStream(content.getBytes()));
+					testEntity3.setMimeType("text/plain");
+					testEntity3 = repository3.save(testEntity3);
+
+//					versionTests.setMvc(mvc);
+//					versionTests.setUrl("/files/" + testEntity2.getId() + "/child");
+//					versionTests.setRepo(repository2);
+//					versionTests.setStore(contentRepository2);
+//					versionTests.setEtag(format("\"%s\"", testEntity2.getVersion()));
+//
+//					lastModifiedDateTests.setMvc(mvc);
+//					lastModifiedDateTests.setUrl("/files/" + testEntity2.getId() + "/child");
+//					lastModifiedDateTests.setLastModifiedDate(testEntity2.getModifiedDate());
+//					lastModifiedDateTests.setEtag(testEntity2.getVersion().toString());
+//					lastModifiedDateTests.setContent(content);
+				});
+				Context("given the content property is accessed via the /{repository}/{id}/{contentProperty} endpoint", () -> {
+					Context("a GET to /{repository}/{id}/{contentProperty}", () -> {
+						It("should return the content", () -> {
+							MockHttpServletResponse response = mvc
+									.perform(get("/testEntity3s/" + testEntity3.getId() + "/content")
+											.accept("text/plain"))
+									.andExpect(status().isOk())
+//									.andExpect(header().string("etag", is("\"1\"")))
+//									.andExpect(header().string("last-modified", LastModifiedDate.isWithinASecond(testEntity2.getModifiedDate())))
+									.andReturn().getResponse();
+
+							assertThat(response, is(not(nullValue())));
+							assertThat(response.getContentAsString(), is("Hello Spring Content World!"));
+						});
+					});
+					Context("a GET to /{repository}/{id}/{contentProperty} with a mime type that matches a renderer", () -> {
+						It("should return the rendition and 200", () -> {
+							MockHttpServletResponse response = mvc
+									.perform(get(
+											"/testEntity3s/" + testEntity3.getId()
+													+ "/content")
+											.accept("text/html"))
+									.andExpect(status().isOk()).andReturn()
+									.getResponse();
+
+							assertThat(response, is(not(nullValue())));
+							assertThat(response.getContentAsString(), is(
+									"<html><body>Hello Spring Content World!</body></html>"));
+						});
+					});
+					Context("a GET to /{repository}/{id}/{contentProperty} with multiple mime types the last of which matches the content", () -> {
+						It("should return the original content and 200", () -> {
+							MockHttpServletResponse response = mvc
+									.perform(get("/testEntity3s/"
+											+ testEntity3.getId()
+											+ "/content").accept(
+											new String[] { "text/xml",
+													"text/*" }))
+									.andExpect(status().isOk()).andReturn()
+									.getResponse();
+
+							assertThat(response, is(not(nullValue())));
+							assertThat(response.getContentAsString(),
+									is("Hello Spring Content World!"));
+						});
+					});
+					Context("a PUT to /{repository}/{id}/{contentProperty}", () -> {
+						It("should create the content", () -> {
+							mvc.perform(
+									put("/testEntity3s/" + testEntity3.getId() + "/content")
+											.content("Hello New Spring Content World!")
+											.contentType("text/plain"))
+									.andExpect(status().is2xxSuccessful());
+
+							Optional<TestEntity3> fetched = repository3.findById(testEntity3.getId());
+							assertThat(fetched.isPresent(), is(true));
+							assertThat(fetched.get().getContentId(),is(not(nullValue())));
+							assertThat(fetched.get().getLen(), is(31L));
+							assertThat(fetched.get().getMimeType(), is("text/plain"));
+						});
+					});
+					Context("a DELETE to /{repository}/{id}/{contentProperty}", () -> {
+						It("should delete the content", () -> {
+							mvc.perform(delete(
+									"/testEntity3s/" + testEntity3.getId() + "/content"))
+									.andExpect(status().isNoContent());
+
+							Optional<TestEntity3> fetched = repository3.findById(testEntity3.getId());
+							assertThat(fetched.isPresent(), is(true));
+							assertThat(fetched.get().getContentId(), is(nullValue()));
+							assertThat(fetched.get().getLen(), is(0L));
+						});
+					});
+
+//					versionTests = Version.tests();
+//					lastModifiedDateTests = LastModifiedDate.tests();
+				});
+			});
+
+			Context("given an Entity with a primitive content property but no content", () -> {
+
+				BeforeEach(() -> {
+					testEntity3 = repository3.save(new TestEntity3());
+
+//					versionTests.setMvc(mvc);
+//					versionTests.setUrl("/files/" + testEntity2.getId() + "/child");
+//					versionTests.setRepo(repository2);
+//					versionTests.setStore(contentRepository2);
+//					versionTests.setEtag(format("\"%s\"", testEntity2.getVersion()));
+//
+//					lastModifiedDateTests.setMvc(mvc);
+//					lastModifiedDateTests.setUrl("/files/" + testEntity2.getId() + "/child");
+//					lastModifiedDateTests.setLastModifiedDate(testEntity2.getModifiedDate());
+//					lastModifiedDateTests.setEtag(testEntity2.getVersion().toString());
+//					lastModifiedDateTests.setContent(content);
+				});
+				Context("a GET to /{repository}/{id}/{contentProperty}", () -> {
+					It("should return 404", () -> {
+						mvc.perform(
+								get("/testEntity3s/" + testEntity3.getId() + "/content"))
+							.andExpect(status().isNotFound());
+					});
+				});
+				Context("a PUT to /{repository}/{id}/{contentProperty}", () -> {
+					It("should create the content", () -> {
+						mvc.perform(
+								put("/testEntity3s/" + testEntity3.getId() + "/content")
+										.content("Hello New Spring Content World!")
+										.contentType("text/plain"))
+								.andExpect(status().is2xxSuccessful());
+
+						Optional<TestEntity3> fetched = repository3.findById(testEntity3.getId());
+						assertThat(fetched.isPresent(), is(true));
+						assertThat(fetched.get().getContentId(),is(not(nullValue())));
+						assertThat(fetched.get().getLen(), is(31L));
+						assertThat(fetched.get().getMimeType(), is("text/plain"));
+						try (InputStream actual = contentRepository3.getContent(fetched.get())) {
+							assertThat(IOUtils.toString(actual),is("Hello New Spring Content World!"));
+						}
 					});
 				});
 			});

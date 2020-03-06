@@ -80,7 +80,7 @@ public class BaseUriContentLinksIT {
 					entityContentLinkTests.setTestEntity(testEntity3);
 					entityContentLinkTests.setUrl("/api/testEntity3s/" + testEntity3.getId());
 					entityContentLinkTests.setLinkRel("content");
-					entityContentLinkTests.setExpectedLinkRegex("http://localhost/contentApi/testEntity3s/" + testEntity3.getId());
+					entityContentLinkTests.setExpectedLinkRegex("http://localhost/contentApi/testEntity3s/" + testEntity3.getId() + "/content");
 				});
 				entityContentLinkTests = new EntityContentLinkTests();
 			});
