@@ -12,9 +12,11 @@ import internal.org.springframework.content.rest.support.TestEntityRepository;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.content.rest.config.HypermediaConfiguration;
 import org.springframework.content.rest.config.RestConfiguration;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.data.rest.webmvc.config.RepositoryRestMvcConfiguration;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
@@ -33,6 +35,7 @@ import static com.github.paulcwarren.ginkgo4j.Ginkgo4jDSL.Describe;
 @Ginkgo4jConfiguration(threads = 1)
 @WebAppConfiguration
 @ContextConfiguration(classes = {
+		EntityContentLinksIT.EntityLinksConfig.class,
 		StoreConfig.class,
 		DelegatingWebMvcConfiguration.class,
 		RepositoryRestMvcConfiguration.class,
@@ -40,7 +43,7 @@ import static com.github.paulcwarren.ginkgo4j.Ginkgo4jDSL.Describe;
 		HypermediaConfiguration.class })
 @Transactional
 @ActiveProfiles("store")
-public class ContentLinksIT {
+public class EntityContentLinksIT {
 
 	@Autowired
 	TestEntityRepository repository;
@@ -62,12 +65,14 @@ public class ContentLinksIT {
 	private ContentLinkTests contentLinkTests;
 
 	{
-		Describe("given no baseUri are set", () -> {
+		Describe("EntityLinks", () -> {
+
 			BeforeEach(() -> {
 				mvc = MockMvcBuilders.webAppContextSetup(context).build();
 			});
 
-			Context("given an Entity and a Store with a default store path", () -> {
+			Context("when entity links are enabled", () -> {
+
 				BeforeEach(() -> {
 					testEntity3 = repository3.save(new TestEntity3());
 
@@ -76,8 +81,8 @@ public class ContentLinksIT {
 					contentLinkTests.setStore(contentRepository3);
 					contentLinkTests.setTestEntity(testEntity3);
 					contentLinkTests.setUrl("/testEntity3s/" + testEntity3.getId());
-					contentLinkTests.setLinkRel("content");
-					contentLinkTests.setExpectedLinkRegex("http://localhost/testEntity3s/" + testEntity3.getId() + "/content");
+					contentLinkTests.setLinkRel("testEntity3s");
+					contentLinkTests.setExpectedLinkRegex("http://localhost/testEntity3s/" + testEntity3.getId());
 				});
 				contentLinkTests = new ContentLinkTests();
 			});
@@ -86,5 +91,18 @@ public class ContentLinksIT {
 
 	@Test
 	public void noop() {
+	}
+
+	@Configuration
+	public static class EntityLinksConfig implements InitializingBean {
+
+		@Autowired
+		private RestConfiguration config;
+
+
+		@Override
+		public void afterPropertiesSet() throws Exception {
+			config.setContentLinks(false);
+		}
 	}
 }

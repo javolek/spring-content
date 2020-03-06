@@ -32,7 +32,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @Setter
-public class EntityContentLinkTests {
+public class ContentLinkTests {
 
 	private MockMvc mvc;
 

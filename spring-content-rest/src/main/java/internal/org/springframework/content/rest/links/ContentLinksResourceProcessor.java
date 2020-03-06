@@ -62,6 +62,10 @@ public class ContentLinksResourceProcessor implements RepresentationModelProcess
 		this.config = config;
 	}
 
+	RestConfiguration getRestConfiguration() {
+		return config;
+	}
+
 	public PersistentEntityResource process(final PersistentEntityResource resource) {
 
 		Object object = resource.getContent();
@@ -74,8 +78,19 @@ public class ContentLinksResourceProcessor implements RepresentationModelProcess
 
 		Field[] fields = BeanUtils.findFieldsWithAnnotation(object.getClass(), ContentId.class, new BeanWrapperImpl(object));
 		if (fields.length == 1) {
+
 			if (store != null) {
-				resource.add(shortcutLink(config.getBaseUri(), store, entityId, contentRel(store, fields[0].getName())));
+
+				if (config.contentLinks()) {
+					resource.add(fullyQualifiedLink(config.getBaseUri(), store, entityId, fields[0].getName()));
+				}
+				else {
+					// for compatibility with v0.x.0 versions
+					originalLink(config.getBaseUri(), store, entityId).ifPresent((l) -> resource.add(l));
+
+					resource.add(shortcutLink(config.getBaseUri(), store, entityId, StringUtils
+							.uncapitalize(ContentStoreUtils.getSimpleName(store))));
+				}
 			}
 		} else if (fields.length > 1) {
 			for (Field field : fields) {
@@ -123,7 +138,7 @@ public class ContentLinksResourceProcessor implements RepresentationModelProcess
 		String property = StringUtils.uncapitalize(ContentStoreUtils.propertyName(fieldName));
 		builder = builder.slash(property);
 
-		return builder.withRel(property);
+		return builder.withRel(contentRel(store, fieldName));
 	}
 
 	public static class StoreLinkBuilder extends LinkBuilderSupport<StoreLinkBuilder> {

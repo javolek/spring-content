@@ -2,7 +2,7 @@ package internal.org.springframework.content.rest.links;
 
 import com.github.paulcwarren.ginkgo4j.Ginkgo4jConfiguration;
 import com.github.paulcwarren.ginkgo4j.Ginkgo4jSpringRunner;
-import internal.org.springframework.content.rest.support.StoreConfig;
+import internal.org.springframework.content.rest.support.BaseUriConfig;
 import internal.org.springframework.content.rest.support.TestEntity;
 import internal.org.springframework.content.rest.support.TestEntity3;
 import internal.org.springframework.content.rest.support.TestEntity3ContentRepository;
@@ -33,14 +33,14 @@ import static com.github.paulcwarren.ginkgo4j.Ginkgo4jDSL.Describe;
 @Ginkgo4jConfiguration(threads = 1)
 @WebAppConfiguration
 @ContextConfiguration(classes = {
-		StoreConfig.class,
+		BaseUriConfig.class,
 		DelegatingWebMvcConfiguration.class,
 		RepositoryRestMvcConfiguration.class,
 		RestConfiguration.class,
 		HypermediaConfiguration.class })
 @Transactional
 @ActiveProfiles("store")
-public class ContentLinksIT {
+public class ContentRelationIT {
 
 	@Autowired
 	TestEntityRepository repository;
@@ -62,22 +62,22 @@ public class ContentLinksIT {
 	private ContentLinkTests contentLinkTests;
 
 	{
-		Describe("given no baseUri are set", () -> {
+		Describe("given an exporting store specifying a contentRel of foo", () -> {
 			BeforeEach(() -> {
 				mvc = MockMvcBuilders.webAppContextSetup(context).build();
 			});
 
-			Context("given an Entity and a Store with a default store path", () -> {
+			Context("given an Entity and a Store specifying a contentRel and a store path", () -> {
 				BeforeEach(() -> {
-					testEntity3 = repository3.save(new TestEntity3());
+					testEntity = repository.save(new TestEntity());
 
 					contentLinkTests.setMvc(mvc);
-					contentLinkTests.setRepository(repository3);
-					contentLinkTests.setStore(contentRepository3);
-					contentLinkTests.setTestEntity(testEntity3);
-					contentLinkTests.setUrl("/testEntity3s/" + testEntity3.getId());
-					contentLinkTests.setLinkRel("content");
-					contentLinkTests.setExpectedLinkRegex("http://localhost/testEntity3s/" + testEntity3.getId() + "/content");
+					contentLinkTests.setRepository(repository);
+					contentLinkTests.setStore(contentRepository);
+					contentLinkTests.setTestEntity(testEntity);
+					contentLinkTests.setUrl("/api/testEntities/" + testEntity.getId());
+					contentLinkTests.setLinkRel("foo");
+					contentLinkTests.setExpectedLinkRegex("http://localhost/contentApi/testEntitiesContent/" + testEntity.getId() + "/content");
 				});
 				contentLinkTests = new ContentLinkTests();
 			});

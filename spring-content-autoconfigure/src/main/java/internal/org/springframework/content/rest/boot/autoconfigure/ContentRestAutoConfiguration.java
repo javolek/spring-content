@@ -22,6 +22,7 @@ public class ContentRestAutoConfiguration {
 	public static class ContentRestProperties {
 
 		private URI baseUri;
+		private boolean contentLinks;
 
 		public URI getBaseUri() {
 			return baseUri;
@@ -30,7 +31,15 @@ public class ContentRestAutoConfiguration {
 		public void setBaseUri(URI baseUri) {
 			this.baseUri = baseUri;
 		}
-	}
+
+		public boolean contentLinks() {
+			return this.contentLinks;
+		}
+
+		public void setContentLinks(boolean contentLinks) {
+			this.contentLinks = contentLinks;
+		}
+    }
 
 	@Bean
 	public SpringBootContentRestConfigurer springBootContentRestConfigurer() {
