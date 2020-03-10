@@ -22,7 +22,7 @@ public class ContentRestAutoConfiguration {
 	public static class ContentRestProperties {
 
 		private URI baseUri;
-		private boolean contentLinks;
+		private boolean fullyQualifiedLinks = false;
 
 		public URI getBaseUri() {
 			return baseUri;
@@ -32,12 +32,12 @@ public class ContentRestAutoConfiguration {
 			this.baseUri = baseUri;
 		}
 
-		public boolean contentLinks() {
-			return this.contentLinks;
+		public boolean fullyQualifiedLinks() {
+			return this.fullyQualifiedLinks;
 		}
 
-		public void setContentLinks(boolean contentLinks) {
-			this.contentLinks = contentLinks;
+		public void setFullyQualifiedLinks(boolean fullyQualifiedLinks) {
+			this.fullyQualifiedLinks = fullyQualifiedLinks;
 		}
     }
 

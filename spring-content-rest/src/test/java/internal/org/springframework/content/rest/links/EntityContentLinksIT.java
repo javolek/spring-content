@@ -35,7 +35,6 @@ import static com.github.paulcwarren.ginkgo4j.Ginkgo4jDSL.Describe;
 @Ginkgo4jConfiguration(threads = 1)
 @WebAppConfiguration
 @ContextConfiguration(classes = {
-		EntityContentLinksIT.EntityLinksConfig.class,
 		StoreConfig.class,
 		DelegatingWebMvcConfiguration.class,
 		RepositoryRestMvcConfiguration.class,
@@ -91,18 +90,5 @@ public class EntityContentLinksIT {
 
 	@Test
 	public void noop() {
-	}
-
-	@Configuration
-	public static class EntityLinksConfig implements InitializingBean {
-
-		@Autowired
-		private RestConfiguration config;
-
-
-		@Override
-		public void afterPropertiesSet() throws Exception {
-			config.setContentLinks(false);
-		}
 	}
 }

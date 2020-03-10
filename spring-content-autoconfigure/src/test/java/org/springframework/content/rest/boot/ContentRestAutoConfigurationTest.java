@@ -65,7 +65,7 @@ public class ContentRestAutoConfigurationTest {
 					context.refresh();
 
 					assertThat(context.getBean(ContentRestAutoConfiguration.ContentRestProperties.class).getBaseUri(), is(URI.create("/contentApi")));
-					assertThat(context.getBean(ContentRestAutoConfiguration.ContentRestProperties.class).contentLinks(), is(false));
+					assertThat(context.getBean(ContentRestAutoConfiguration.ContentRestProperties.class).fullyQualifiedLinks(), is(false));
 
 					assertThat(context.getBean(SpringBootContentRestConfigurer.class), is(not(nullValue())));
 

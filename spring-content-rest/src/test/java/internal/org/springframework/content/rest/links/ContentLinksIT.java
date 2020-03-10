@@ -76,8 +76,8 @@ public class ContentLinksIT {
 					contentLinkTests.setStore(contentRepository3);
 					contentLinkTests.setTestEntity(testEntity3);
 					contentLinkTests.setUrl("/testEntity3s/" + testEntity3.getId());
-					contentLinkTests.setLinkRel("content");
-					contentLinkTests.setExpectedLinkRegex("http://localhost/testEntity3s/" + testEntity3.getId() + "/content");
+					contentLinkTests.setLinkRel("testEntity3");
+					contentLinkTests.setExpectedLinkRegex("http://localhost/testEntity3s/" + testEntity3.getId() );
 				});
 				contentLinkTests = new ContentLinkTests();
 			});

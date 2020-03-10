@@ -84,8 +84,8 @@ public class ContextPathContentLinksIT {
 					contentLinkTests.setTestEntity(testEntity3);
 					contentLinkTests.setUrl("/contextPath/testEntity3s/" + testEntity3.getId());
 					contentLinkTests.setContextPath("/contextPath");
-					contentLinkTests.setLinkRel("content");
-					contentLinkTests.setExpectedLinkRegex("http://localhost/contextPath/testEntity3s/" + testEntity3.getId() + "/content");
+					contentLinkTests.setLinkRel("testEntity3");
+					contentLinkTests.setExpectedLinkRegex("http://localhost/contextPath/testEntity3s/" + testEntity3.getId() );
 				});
 				contentLinkTests = new ContentLinkTests();
 			});

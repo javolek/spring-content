@@ -57,14 +57,14 @@ public class SpringBootContentRestConfigurerTest {
                     });
                 });
 
-                Context("given a contentLinks property setting", () -> {
+                Context("given a fullyQualifiedLinks property setting", () -> {
 
                     BeforeEach(() -> {
-                        properties.setContentLinks(true);
+                        properties.setFullyQualifiedLinks(true);
                     });
 
                     It("should set the property on the RestConfiguration", () -> {
-                        verify(restConfig).setContentLinks(eq(true));
+                        verify(restConfig).setFullyQualifiedLinks(eq(true));
                     });
                 });
 
@@ -83,7 +83,7 @@ public class SpringBootContentRestConfigurerTest {
 
                     It("should not set the property on the RestConfiguration", () -> {
                         verify(restConfig, never()).setBaseUri(anyObject());
-                        verify(restConfig, never()).setContentLinks(anyBoolean());
+                        verify(restConfig, never()).setFullyQualifiedLinks(anyBoolean());
                     });
                 });
             });

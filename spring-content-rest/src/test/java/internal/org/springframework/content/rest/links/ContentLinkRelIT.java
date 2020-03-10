@@ -40,7 +40,7 @@ import static com.github.paulcwarren.ginkgo4j.Ginkgo4jDSL.Describe;
 		HypermediaConfiguration.class })
 @Transactional
 @ActiveProfiles("store")
-public class ContentRelationIT {
+public class ContentLinkRelIT {
 
 	@Autowired
 	TestEntityRepository repository;
@@ -77,7 +77,7 @@ public class ContentRelationIT {
 					contentLinkTests.setTestEntity(testEntity);
 					contentLinkTests.setUrl("/api/testEntities/" + testEntity.getId());
 					contentLinkTests.setLinkRel("foo");
-					contentLinkTests.setExpectedLinkRegex("http://localhost/contentApi/testEntitiesContent/" + testEntity.getId() + "/content");
+					contentLinkTests.setExpectedLinkRegex("http://localhost/contentApi/testEntitiesContent/" + testEntity.getId() );
 				});
 				contentLinkTests = new ContentLinkTests();
 			});

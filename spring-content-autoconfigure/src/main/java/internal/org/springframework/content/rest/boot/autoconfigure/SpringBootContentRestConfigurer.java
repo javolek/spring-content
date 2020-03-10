@@ -31,6 +31,6 @@ public class SpringBootContentRestConfigurer implements ContentRestConfigurer {
             config.setBaseUri(properties.getBaseUri());
         }
 
-        config.setContentLinks(properties.contentLinks());
+        config.setFullyQualifiedLinks(properties.fullyQualifiedLinks());
     }
 }

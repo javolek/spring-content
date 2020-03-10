@@ -81,14 +81,14 @@ public class ContentLinksResourceProcessor implements RepresentationModelProcess
 
 			if (store != null) {
 
-				if (config.contentLinks()) {
+				if (config.fullyQualifiedLinks()) {
 					resource.add(fullyQualifiedLink(config.getBaseUri(), store, entityId, fields[0].getName()));
 				}
 				else {
 					// for compatibility with v0.x.0 versions
-					originalLink(config.getBaseUri(), store, entityId).ifPresent((l) -> resource.add(l));
+					originalLink(config.getBaseUri(), store, entityId).ifPresent((l) -> addLink(resource, l));
 
-					resource.add(shortcutLink(config.getBaseUri(), store, entityId, StringUtils
+					addLink(resource, shortcutLink(config.getBaseUri(), store, entityId, StringUtils
 							.uncapitalize(ContentStoreUtils.getSimpleName(store))));
 				}
 			}
@@ -101,6 +101,20 @@ public class ContentLinksResourceProcessor implements RepresentationModelProcess
 		return resource;
 	}
 
+	private void addLink(PersistentEntityResource resource, Link l) {
+
+		if (resource.hasLink(l.getRel())) {
+			for (Link existingLink : resource.getLinks(l.getRel())) {
+				if (existingLink.getHref().equals(l.getHref())) {
+					return;
+				}
+			}
+		}
+
+		resource.add(l);
+	}
+
+	//TODO: rename propertyLinkRel
 	private String contentRel(ContentStoreInfo storeInfo, String name) {
 		String contentRel = StringUtils.uncapitalize(ContentStoreUtils.propertyName(name));
 		Class<?> storeIface = storeInfo.getInterface();
@@ -109,6 +123,17 @@ public class ContentLinksResourceProcessor implements RepresentationModelProcess
 			contentRel = exportSpec.contentRel();
 		}
 		return contentRel;
+	}
+
+	//TODO: rename contentRel to linkRel in annotation
+	private String entityRel(ContentStoreInfo storeInfo, String defaultLinkRel) {
+		String entityLinkRel = defaultLinkRel;
+		Class<?> storeIface = storeInfo.getInterface();
+		StoreRestResource exportSpec = storeIface.getAnnotation(StoreRestResource.class);
+		if (exportSpec != null && !StringUtils.isEmpty(exportSpec.contentRel())) {
+			entityLinkRel = exportSpec.contentRel();
+		}
+		return entityLinkRel;
 	}
 
 	private Optional<Link> originalLink(URI baseUri, ContentStoreInfo store, Object id) {
@@ -120,14 +145,14 @@ public class ContentLinksResourceProcessor implements RepresentationModelProcess
 		return Optional.of(shortcutLink(baseUri, store, id, ContentStoreUtils.storePath(store)));
 	}
 
-	private Link shortcutLink(URI baseUri, ContentStoreInfo store, Object id, String rel) {
+	private Link shortcutLink(URI baseUri, ContentStoreInfo store, Object id, String defaultLinkRel) {
 
 		LinkBuilder builder = null;
 		builder = StoreLinkBuilder.linkTo(new BaseUri(baseUri), store);
 
 		builder = builder.slash(id);
 
-		return builder.withRel(rel);
+		return builder.withRel(entityRel(store, defaultLinkRel));
 	}
 
 	private Link fullyQualifiedLink(URI baseUri, ContentStoreInfo store, Object id, String fieldName) {
