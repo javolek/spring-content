@@ -62,12 +62,12 @@ public class ContentLinkRelIT {
 	private ContentLinkTests contentLinkTests;
 
 	{
-		Describe("given an exporting store specifying a contentRel of foo", () -> {
+		Describe("given an exporting store specifying a linkRel of foo", () -> {
 			BeforeEach(() -> {
 				mvc = MockMvcBuilders.webAppContextSetup(context).build();
 			});
 
-			Context("given an Entity and a Store specifying a contentRel and a store path", () -> {
+			Context("given an Entity and a Store specifying a linkRel and a store path", () -> {
 				BeforeEach(() -> {
 					testEntity = repository.save(new TestEntity());
 

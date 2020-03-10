@@ -18,5 +18,5 @@ public @interface StoreRestResource {
 	 */
 	String path() default "";
 
-	String contentRel() default "";
+	String linkRel() default "";
 }

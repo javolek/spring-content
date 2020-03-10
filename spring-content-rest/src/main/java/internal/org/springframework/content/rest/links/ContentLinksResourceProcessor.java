@@ -114,24 +114,22 @@ public class ContentLinksResourceProcessor implements RepresentationModelProcess
 		resource.add(l);
 	}
 
-	//TODO: rename propertyLinkRel
-	private String contentRel(ContentStoreInfo storeInfo, String name) {
+	private String propertyLinkRel(ContentStoreInfo storeInfo, String name) {
 		String contentRel = StringUtils.uncapitalize(ContentStoreUtils.propertyName(name));
 		Class<?> storeIface = storeInfo.getInterface();
 		StoreRestResource exportSpec = storeIface.getAnnotation(StoreRestResource.class);
-		if (exportSpec != null && !StringUtils.isEmpty(exportSpec.contentRel())) {
-			contentRel = exportSpec.contentRel();
+		if (exportSpec != null && !StringUtils.isEmpty(exportSpec.linkRel())) {
+			contentRel = exportSpec.linkRel();
 		}
 		return contentRel;
 	}
 
-	//TODO: rename contentRel to linkRel in annotation
 	private String entityRel(ContentStoreInfo storeInfo, String defaultLinkRel) {
 		String entityLinkRel = defaultLinkRel;
 		Class<?> storeIface = storeInfo.getInterface();
 		StoreRestResource exportSpec = storeIface.getAnnotation(StoreRestResource.class);
-		if (exportSpec != null && !StringUtils.isEmpty(exportSpec.contentRel())) {
-			entityLinkRel = exportSpec.contentRel();
+		if (exportSpec != null && !StringUtils.isEmpty(exportSpec.linkRel())) {
+			entityLinkRel = exportSpec.linkRel();
 		}
 		return entityLinkRel;
 	}
@@ -163,7 +161,7 @@ public class ContentLinksResourceProcessor implements RepresentationModelProcess
 		String property = StringUtils.uncapitalize(ContentStoreUtils.propertyName(fieldName));
 		builder = builder.slash(property);
 
-		return builder.withRel(contentRel(store, fieldName));
+		return builder.withRel(propertyLinkRel(store, fieldName));
 	}
 
 	public static class StoreLinkBuilder extends LinkBuilderSupport<StoreLinkBuilder> {
