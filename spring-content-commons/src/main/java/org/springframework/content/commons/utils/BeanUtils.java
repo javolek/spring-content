@@ -171,6 +171,27 @@ public final class BeanUtils {
 		return value;
 	}
 
+	public static Object getValue(Object domainObj, Field field)
+			throws SecurityException, BeansException {
+		Object value = null;
+
+		try {
+//			PropertyDescriptor descriptor = org.springframework.beans.BeanUtils.getPropertyDescriptor(domainObj.getClass(), field.getName());
+//			if (descriptor != null) {
+//				BeanWrapper wrapper = new BeanWrapperImpl(domainObj);
+//				value = wrapper.getPropertyValue(field.getName());
+//			}
+//			else {
+				value = ReflectionUtils.getField(field, domainObj);
+//			}
+			return value;
+		}
+		catch (IllegalArgumentException iae) {
+		}
+
+		return value;
+	}
+
 	public static Object[] getFieldsWithAnnotation(Object domainObj, Class<? extends Annotation> annotationClass) {
 
 		List<Field> fields = new ArrayList<>();
